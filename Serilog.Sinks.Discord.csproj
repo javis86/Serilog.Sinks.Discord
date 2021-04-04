@@ -12,6 +12,8 @@
       It presents a nice format to see complete information about Errors and Exceptions.
       Removes other dependencies from Discord.Net causing compatibility issues with EF
     </Description>
+    <RepositoryUrl>https://github.com/javis86/Serilog.Sinks.Discord.Lite</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
