@@ -1,4 +1,4 @@
-# Serilog sink for Discord
+# Serilog.Sinks.Discord.Lite
 
 ### Write your logs to discord.
 
@@ -10,7 +10,7 @@ webhook url contains **WebhookId** and **WebhookToken** \
 
 [how to create webhook url](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks)
 
-#### Step :two: : install [nuget package](https://www.nuget.org/packages/Serilog.Sinks.Discord/) on your project
+#### Step :two: : install [nuget package](https://www.nuget.org/packages/Serilog.Sinks.Discord.Lite/) on your project
 
 #### Step :three: : configure logger writes to discord:
  `Log.Logger =` \
@@ -46,5 +46,3 @@ or with MinimumLevel:
 ### Screenshots:
 
 ![Serilog](/Screenshots/logs.png?raw=true)
-
-![Serilog](/Screenshots/logs1.png?raw=true)

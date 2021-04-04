@@ -1,62 +1,62 @@
 using System;
 using System.Collections.Generic;
-using DiscordWebhook;
+using Discord.Webhook;
 using Serilog.Events;
 using Serilog.Sinks.Discord.Helpers;
 
 namespace Serilog.Sinks.Discord
 {
-    public static class WebhookObjectFactory
+    public static class SerilogWebhookObjectFactory
     {
         public static WebhookObject Create(LogEvent logEvent, IFormatProvider formatProvider)
         {
-            var obj = new WebhookObject
-            {
-                embeds = logEvent.Exception != null
-                    ? new Embed[] {BuildExceptionEmbed(logEvent, formatProvider)}
-                    : new Embed[] {BuildBasicEmbed(logEvent, formatProvider)}
-            };
+            var obj = logEvent.Exception != null
+                ? BuildExceptionObject(logEvent, formatProvider)
+                : BuildBasicObject(logEvent, formatProvider);
 
             return obj;
         }
 
-        private static Embed BuildBasicEmbed(LogEvent logEvent, IFormatProvider formatProvider)
+        private static WebhookObject BuildBasicObject(LogEvent logEvent, IFormatProvider formatProvider)
         {
             var message = logEvent.RenderMessage(formatProvider);
             message = message?.Length > 256 ? message.Substring(0, 256) : message;
 
             var embed = new Embed()
             {
+                title = GetLevelTitle(logEvent.Level),
                 description = message,
-                color = GetColor(logEvent.Level)
+                Color = GetDColor(logEvent.Level),
             };
 
-            return embed;
+            var obj = new WebhookObject {embeds = new List<Embed> {embed}};
+            return obj;
         }
 
-        private static Embed BuildExceptionEmbed(LogEvent logEvent, IFormatProvider formatProvider)
+        private static WebhookObject BuildExceptionObject(LogEvent logEvent, IFormatProvider formatProvider)
         {
             var stackTrace = logEvent.Exception.StackTrace;
             stackTrace = FormatStackTrace(stackTrace);
 
             var embed = new Embed()
             {
+                title = "Error",
                 description = logEvent.Exception.Message,
-                color = GetColor(logEvent.Level),
+                Color = GetDColor(logEvent.Level),
                 thumbnail = new Thumbnail() {url = "https://raw.githubusercontent.com/javis86/Serilog.Sinks.Discord/master/Resources/error.png"},
             };
 
-            var fields = new List<Field>()
+            embed.fields = new List<Field>()
             {
                 new Field() {name = "Type", value = logEvent.Exception.GetType().Name, inline = true},
                 new Field() {name = "TimeStamp", value = logEvent.Timestamp.ToString(), inline = true},
                 new Field() {name = "Message", value = logEvent.Exception.Message, inline = false},
                 new Field() {name = "StackTrace", value = stackTrace, inline = false}
             };
-            fields.AddRange(GetFieldsFromEventProperties(logEvent.Properties));
-            embed.fields = fields.ToArray();
+            embed.fields.AddRange(GetFieldsFromEventLogProperties(logEvent.Properties));
 
-            return embed;
+            var obj = new WebhookObject {embeds = new List<Embed> {embed}};
+            return obj;
         }
 
         private static string FormatStackTrace(string stackTrace)
@@ -69,21 +69,33 @@ namespace Serilog.Sinks.Discord
             return stackTrace;
         }
 
-        private static int GetColor(LogEventLevel level)
+        private static DColor GetDColor(LogEventLevel level)
         {
-            return level switch
+            switch (level)
             {
-                LogEventLevel.Debug => (int) Color.Purple,
-                LogEventLevel.Error => (int) Color.Red,
-                LogEventLevel.Fatal => (int) Color.DarkRed,
-                LogEventLevel.Information => (int) Color.Green,
-                LogEventLevel.Verbose => (int) Color.Grey,
-                LogEventLevel.Warning => (int) Color.Orange,
-                _ => (int) Color.Orange
-            };
+                case LogEventLevel.Debug:
+                    return ColorsTemplate.Purple;
+                case LogEventLevel.Error:
+                    return ColorsTemplate.Red;
+                case LogEventLevel.Fatal:
+                    return ColorsTemplate.DarkRed;
+                case LogEventLevel.Information:
+                    return ColorsTemplate.Green;
+                case LogEventLevel.Verbose:
+                    return ColorsTemplate.Grey;
+                case LogEventLevel.Warning:
+                    return ColorsTemplate.Orange;
+                default:
+                    return ColorsTemplate.Black;
+            }
+        }
+        
+        private static string GetLevelTitle(LogEventLevel level)
+        {
+            return level.ToString();
         }
 
-        public static IEnumerable<Field> GetFieldsFromEventProperties(IReadOnlyDictionary<string, LogEventPropertyValue> logEventProperties)
+        public static IEnumerable<Field> GetFieldsFromEventLogProperties(IReadOnlyDictionary<string, LogEventPropertyValue> logEventProperties)
         {
             var properties = new List<Field>();
 

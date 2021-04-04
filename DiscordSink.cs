@@ -1,5 +1,5 @@
 ﻿using System;
-using DiscordWebhook;
+using Discord.Webhook;
 using Serilog.Core;
 using Serilog.Events;
 
@@ -32,12 +32,12 @@ namespace Serilog.Sinks.Discord
 
             try
             {
-                var obj = WebhookObjectFactory.Create(logEvent, _formatProvider);
-                webHook.PostData(obj);
+                var obj = SerilogWebhookObjectFactory.Create(logEvent, _formatProvider);
+                webHook.Send(obj);
             }
             catch (Exception ex)
             {
-                webHook.PostData(new WebhookObject() {content = $"ooo snap, {ex.Message}"});
+                webHook.Send(new WebhookObject() {content = $"ooo snap, {ex.Message}"});
             }
         }
     }
