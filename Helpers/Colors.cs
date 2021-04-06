@@ -2,7 +2,7 @@ using Discord.Webhook;
 
 namespace Serilog.Sinks.Discord.Helpers
 {
-    public static class ColorsTemplate
+    public static class Colors
     {
         public static readonly DColor Red = new DColor(231, 76, 70); //https://www.spycolor.com/e74c3c#
         public static readonly DColor DarkRed = new DColor(153,45,34); //https://www.spycolor.com/992d22#

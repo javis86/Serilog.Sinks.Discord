@@ -22,12 +22,12 @@ namespace Serilog.Sinks.Discord
             var message = logEvent.RenderMessage(formatProvider);
             message = message?.Length > 256 ? message.Substring(0, 256) : message;
 
-            var embed = new Embed()
-            {
-                title = GetLevelTitle(logEvent.Level),
-                description = message,
-                Color = GetDColor(logEvent.Level),
-            };
+            var embedBuilder = new EmbedBuilder();
+            embedBuilder.WithTitle(GetLevelTitle(logEvent.Level))
+                .WithDescription(message)
+                .WithColor(GetColorFromLevel(logEvent.Level));
+
+            var embed = embedBuilder.Build();
 
             var obj = new WebhookObject {embeds = new List<Embed> {embed}};
             return obj;
@@ -38,23 +38,19 @@ namespace Serilog.Sinks.Discord
             var stackTrace = logEvent.Exception.StackTrace;
             stackTrace = FormatStackTrace(stackTrace);
 
-            var embed = new Embed()
-            {
-                title = "Error",
-                description = logEvent.Exception.Message,
-                Color = GetDColor(logEvent.Level),
-                thumbnail = new Thumbnail() {url = "https://raw.githubusercontent.com/javis86/Serilog.Sinks.Discord/master/Resources/error.png"},
-            };
+            var embedBuilder = new EmbedBuilder()
+                .WithTitle("Error")
+                .WithDescription(logEvent.Exception.Message)
+                .WithColor(GetColorFromLevel(logEvent.Level))
+                .WithThumbnail("https://raw.githubusercontent.com/javis86/Serilog.Sinks.Discord/master/Resources/error.png")
+                .AddField("Type", logEvent.Exception.GetType().Name, true)
+                .AddField("TimeStamp", logEvent.Timestamp.ToString(), true)
+                .AddField("Message", logEvent.Exception.Message)
+                .AddField("StackTrace", stackTrace)
+                .AddFieldsRange(GetFieldsFromLogEventProperties(logEvent.Properties));
 
-            embed.fields = new List<Field>()
-            {
-                new Field() {name = "Type", value = logEvent.Exception.GetType().Name, inline = true},
-                new Field() {name = "TimeStamp", value = logEvent.Timestamp.ToString(), inline = true},
-                new Field() {name = "Message", value = logEvent.Exception.Message, inline = false},
-                new Field() {name = "StackTrace", value = stackTrace, inline = false}
-            };
-            embed.fields.AddRange(GetFieldsFromEventLogProperties(logEvent.Properties));
-
+            var embed = embedBuilder.Build();
+            
             var obj = new WebhookObject {embeds = new List<Embed> {embed}};
             return obj;
         }
@@ -69,40 +65,40 @@ namespace Serilog.Sinks.Discord
             return stackTrace;
         }
 
-        private static DColor GetDColor(LogEventLevel level)
+        private static DColor GetColorFromLevel(LogEventLevel level)
         {
             switch (level)
             {
                 case LogEventLevel.Debug:
-                    return ColorsTemplate.Purple;
+                    return Colors.Purple;
                 case LogEventLevel.Error:
-                    return ColorsTemplate.Red;
+                    return Colors.Red;
                 case LogEventLevel.Fatal:
-                    return ColorsTemplate.DarkRed;
+                    return Colors.DarkRed;
                 case LogEventLevel.Information:
-                    return ColorsTemplate.Green;
+                    return Colors.Green;
                 case LogEventLevel.Verbose:
-                    return ColorsTemplate.Grey;
+                    return Colors.Grey;
                 case LogEventLevel.Warning:
-                    return ColorsTemplate.Orange;
+                    return Colors.Orange;
                 default:
-                    return ColorsTemplate.Black;
+                    return Colors.Black;
             }
         }
-        
+
         private static string GetLevelTitle(LogEventLevel level)
         {
             return level.ToString();
         }
 
-        public static IEnumerable<Field> GetFieldsFromEventLogProperties(IReadOnlyDictionary<string, LogEventPropertyValue> logEventProperties)
+        private static IEnumerable<Field> GetFieldsFromLogEventProperties(IReadOnlyDictionary<string, LogEventPropertyValue> logEventProperties)
         {
             var properties = new List<Field>();
 
             foreach (var property in logEventProperties)
             {
-                var value = property.Value.ToString().Length < 1024 
-                    ? property.Value.ToString() 
+                var value = property.Value.ToString().Length < 1024
+                    ? property.Value.ToString()
                     : property.Value.ToString().Substring(0, 1020) + "...";
 
                 properties.Add(new Field()
@@ -112,7 +108,7 @@ namespace Serilog.Sinks.Discord
                     inline = true
                 });
             }
-            
+
             return properties.ToArray();
         }
     }
