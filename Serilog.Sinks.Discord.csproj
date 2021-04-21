@@ -4,9 +4,9 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <Authors>Colombera Javier</Authors>
     <PackageId>Serilog.Sinks.Discord.Lite</PackageId>
-    <Version>0.2.0</Version>
+    <Version>0.3.0</Version>
     <Product>Serilog Discord Sink Lite</Product>
-    <PackageTags>Serilog;Sinks;Discord;Light</PackageTags>
+    <PackageTags>Serilog;Sinks;Discord;Light;Lite</PackageTags>
     <Description>
       This client library uses a lightweight discord webhook library to send logs to a Discord Channel.
       It presents a nice format to see complete information about Errors and Exceptions.
@@ -17,7 +17,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Discord.Webhook" Version="1.0.7" />
+    <PackageReference Include="Discord.Webhook" Version="1.0.8" />
     <PackageReference Include="Serilog" Version="2.10.0" />
   </ItemGroup>
 

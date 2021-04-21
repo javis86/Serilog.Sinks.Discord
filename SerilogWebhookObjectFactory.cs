@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Discord.Webhook;
 using Serilog.Events;
-using Serilog.Sinks.Discord.Helpers;
 
 namespace Serilog.Sinks.Discord
 {
@@ -20,16 +19,15 @@ namespace Serilog.Sinks.Discord
         private static WebhookObject BuildBasicObject(LogEvent logEvent, IFormatProvider formatProvider)
         {
             var message = logEvent.RenderMessage(formatProvider);
-            message = message?.Length > 256 ? message.Substring(0, 256) : message;
+            message = message?.Length > 1024 ? message.Substring(0, 1024) : message;
 
-            var embedBuilder = new EmbedBuilder();
-            embedBuilder.WithTitle(GetLevelTitle(logEvent.Level))
-                .WithDescription(message)
-                .WithColor(GetColorFromLevel(logEvent.Level));
+            var obj = new WebhookObject();
+            obj.AddEmbed(builder =>
+                builder.WithTitle(GetLevelTitle(logEvent.Level))
+                    .WithDescription(message)
+                    .WithColor(GetColorFromLevel(logEvent.Level))
+            );
 
-            var embed = embedBuilder.Build();
-
-            var obj = new WebhookObject {embeds = new List<Embed> {embed}};
             return obj;
         }
 
@@ -38,20 +36,20 @@ namespace Serilog.Sinks.Discord
             var stackTrace = logEvent.Exception.StackTrace;
             stackTrace = FormatStackTrace(stackTrace);
 
-            var embedBuilder = new EmbedBuilder()
-                .WithTitle("Error")
-                .WithDescription(logEvent.Exception.Message)
-                .WithColor(GetColorFromLevel(logEvent.Level))
-                .WithThumbnail("https://raw.githubusercontent.com/javis86/Serilog.Sinks.Discord/master/Resources/error.png")
-                .AddField("Type", logEvent.Exception.GetType().Name, true)
-                .AddField("TimeStamp", logEvent.Timestamp.ToString(), true)
-                .AddField("Message", logEvent.Exception.Message)
-                .AddField("StackTrace", stackTrace)
-                .AddFieldsRange(GetFieldsFromLogEventProperties(logEvent.Properties));
+            var obj = new WebhookObject();
 
-            var embed = embedBuilder.Build();
-            
-            var obj = new WebhookObject {embeds = new List<Embed> {embed}};
+            obj.AddEmbed(builder =>
+                builder.WithTitle("Error")
+                    .WithDescription(logEvent.Exception.Message)
+                    .WithColor(GetColorFromLevel(logEvent.Level))
+                    .WithThumbnail("https://raw.githubusercontent.com/javis86/Serilog.Sinks.Discord/master/Resources/error.png")
+                    .AddField("Type", logEvent.Exception.GetType().Name, true)
+                    .AddField("TimeStamp", logEvent.Timestamp.ToString(), true)
+                    .AddField("Message", logEvent.Exception.Message)
+                    .AddField("StackTrace", stackTrace)
+                    .AddFieldsRange(GetFieldsFromLogEventProperties(logEvent.Properties))
+            );
+
             return obj;
         }
 
