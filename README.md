@@ -1,4 +1,5 @@
 # Serilog.Sinks.Discord.Lite
+[![NuGet version](https://badge.fury.io/nu/Serilog.Sinks.Discord.Lite.svg)](https://badge.fury.io/nu/Serilog.Sinks.Discord.Lite)
 
 ### Write your logs to discord.
 
